@@ -8,13 +8,13 @@ app = Flask(__name__)
 @app.route("/<string:name>")
 def hello_world(name: str = None):
     # return "<p>Hello, World!</p>"
-    return render_template("hello.html")
-
-
-@app.route("/<name>")
-def personalized_hello(name):
-    # return f"Hello, {name}"
     return render_template("hello.html", _name=name)
+
+
+# @app.route("/<name>")
+# def personalized_hello(name):
+#     # return f"Hello, {name}"
+#     return render_template("hello.html", _name=name)
 
 
 @app.route("/dices")
