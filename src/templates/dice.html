@@ -19,7 +19,7 @@
 
     <button id="add-dice-btn" type="button" onclick="showNewButtonForm()">Add new dice</button>
 
-    <form id="add-dice-form" onsubmit="addNewDice(event)" style="display: none; margin-top: 1em;">
+    <form id="add-dice-form" style="display: none; margin-top: 1em;">
       <label for="sides-input">Enter the number of sides for the new dice:</label>
       <input type="number" id="sides-input" name="numberOfSides" min="2" required>
       <button type="submit">Submit</button>
@@ -50,8 +50,16 @@
             alert(error.message)
           }
         }
+
+        document.getElementById('add-dice-form')
+        .addEventListener('submit', async function(e){
+          e.preventDefault();
+          await addNewDice();
+        });
     </script>
+
   </div>
+  
 {% endblock %}
 
 
