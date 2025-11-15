@@ -4,6 +4,7 @@
     {% block head %}
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="stylesheet" href="{{ url_for('static', filename='layout.css')}}">
       <title>
         {% block title %}
         {% endblock %}- Dice-Roller
@@ -17,6 +18,13 @@
     <div id="content">
       {% block content %}{% endblock %}
     </div>
-    <div id="footer"></div>
+    <div id="footer">
+      {% block footer %}
+        &copy; Copyright 2025 by &nbsp;
+        {% block author %}
+          {{ _author | default("YOU") }}
+        {% endblock %}
+      {% endblock %}
+    </div>
   </body>
 </html>
