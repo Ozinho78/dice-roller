@@ -1,0 +1,158 @@
+{% extends 'layout.html.j2' %}
+
+{% block title %}
+  Dices
+{% endblock %}
+
+{% block content %}
+  <style>
+    .toast-container {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: all;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: Arial, Helvetica, sans-serif;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+      min-width: 260px;
+      max-width: 380px;
+      animation: toast-in 0.25s ease;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .toast.hide {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+
+    .toast-success {
+      background: #e9f7ef;
+      border-left: 4px solid #27ae60;
+      color: #1e7e44;
+    }
+
+    .toast-error {
+      background: #fdecea;
+      border-left: 4px solid #e74c3c;
+      color: #b03a2e;
+    }
+
+    .toast-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .toast-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: inherit;
+      opacity: 0.5;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .toast-close:hover { opacity: 1; }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateX(30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="centered-content">
+    {% if _dices %}
+      <p>Look at these beautiful dices</p>
+      <ul>
+        {% for dice in _dices %}
+          <li>{{ dice["numberOfSides"] }} sided dice </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No dices available</p>
+    {% endif %}
+
+    <button id="add-dice-btn" type="button" onclick="showNewButtonForm()">Add new dice</button>
+
+    <form id="add-dice-form" style="display: none; margin-top: 1em;">
+      <label for="sides-input">Enter the number of sides for the new dice:</label>
+      <input type="number" id="sides-input" name="numberOfSides" min="2" required>
+      <button type="submit">Submit</button>
+    </form>
+
+    <script>
+      function showToast(message, type = 'error', duration = 4000) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+          <span class="toast-icon">${type === 'success' ? '✓' : '✕'}</span>
+          <span>${message}</span>
+          <button class="toast-close" onclick="dismissToast(this.parentElement)">✕</button>
+        `;
+        container.appendChild(toast);
+
+        setTimeout(() => dismissToast(toast), duration);
+      }
+
+      function dismissToast(toast) {
+        if (!toast) return;
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+      }
+
+      function showNewButtonForm() {
+        document.getElementById('add-dice-form').style.display = 'block';
+        document.getElementById('add-dice-btn').style.display = 'none';
+      }
+
+      async function addNewDice() {
+        const sides = document.getElementById('sides-input').value;
+        try {
+          const response = await fetch('api/dices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ numberOfSides: Number(sides) })
+          });
+
+          const data = await response.json();
+
+          if (response.status >= 400) {
+            showToast(data.message || 'Something went wrong', 'error');
+            return;
+          }
+
+          showToast(data.message || 'Dice created!', 'success');
+          setTimeout(() => location.reload(), 1000);
+        }
+        catch (error) {
+          showToast('Network error – could not reach the server.', 'error');
+        }
+      }
+
+      document.getElementById('add-dice-form')
+        .addEventListener('submit', async function(e) {
+          e.preventDefault();
+          await addNewDice();
+        });
+    </script>
+  </div>
+
+{% endblock %}
