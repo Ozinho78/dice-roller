@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from .errors import InvalidDiceError, DiceAlreadyExistsError
 
 api_bp = Blueprint("api", __name__)
 
@@ -16,23 +17,28 @@ def get_dices():
 def create_dice():
     try:
         payload = request.json
-        
-        if not payload["numberOfSides"]:
-            raise Exception()
-        if not payload["numberOfSides"] > 1:
-            raise Exception()
-        
+
+        if not payload or "numberOfSides" not in payload:
+            raise InvalidDiceError("Payload must contain 'numberOfSides'.")
+        if payload["numberOfSides"] <= 1:
+            raise InvalidDiceError()
+
         new_dice = {"numberOfSides": payload["numberOfSides"]}
-        
+
         if new_dice in dices:
-            raise Exception()
-        
+            raise DiceAlreadyExistsError()
+
         dices.append(new_dice)
-        
         return {"message": "dice created"}, 201
-    
-    except:
-        return {"message": "An Unknown Error occured"}, 500
+
+    except InvalidDiceError as e:
+        return {"message": e.message}, 400
+    except DiceAlreadyExistsError as e:
+        return {"message": e.message}, 409
+    except Exception as e:
+        return {"message": "An unexpected error occurred."}, 500
+
+
 
 @api_bp.route("/sample")
 def return_sample_json():
